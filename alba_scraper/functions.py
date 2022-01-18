@@ -14,7 +14,15 @@ def extract_brand_url():
         a = li.find("a")
         span = li.find("span", class_="company")
         urls.append(a["href"])
-        companies.append(span.text)
+
+        if "." in span.text:
+            company = span.text.split(".")[0]
+            companies.append(company)
+        elif "/" in span.text:
+            company= span.text.replace("/", "&")
+            companies.append(company)
+        else:
+            companies.append(span.text)
 
     return urls, companies
 
