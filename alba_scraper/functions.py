@@ -9,23 +9,32 @@ def extract_brand_url():
     soup = BeautifulSoup(res.text, "html.parser")
     lis = soup.find_all(class_="impact")
     urls = []
+    companies = []
     for li in lis:
         a = li.find("a")
+        span = li.find("span", class_="company")
         urls.append(a["href"])
-    return urls
+        companies.append(span.text)
+
+    return urls, companies
 
 # 페이지 데이터 추출
 def extract_page_data(urls):
-    jobs = []
+    jobs_list = []
+
     for url in tqdm(urls):
         page = 1
+        jobs = []
         while True:
             paged_url = f"{url}job/brand/?page={page}&pagesize = 50"
             page +=1
             res = requests.get(paged_url)
             soup = BeautifulSoup(res.text, "html.parser")
             tbody = soup.find("tbody")
-            trs = tbody.find_all("tr")
+            try:
+              trs = tbody.find_all("tr")
+            except:
+              break
             if len(trs)<2:
                 break
             for tr in trs:
@@ -48,11 +57,13 @@ def extract_page_data(urls):
                     jobs.append(job)
                 except:
                     continue
-    return jobs
+        jobs_list.append(jobs)
+
+    return jobs_list
 
 # csv로 저장
-def save_as_csv(jobs):
-    file = open("jobInfo.csv", mode="w", encoding="utf-8")
+def save_as_csv(jobs, company_name):
+    file = open(f"{company_name}.csv", mode="w", encoding="utf-8")
     writer = csv.writer(file)
     for job in tqdm(jobs):
         writer.writerow(list(job.values()))
